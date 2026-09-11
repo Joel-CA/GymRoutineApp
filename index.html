@@ -1,0 +1,1434 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#0a0a0f">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="description" content="Jeremy Ethier's 6+1 Full Body Workout — guided gym companion app">
+  <title>6+1 Full Body · Jeremy Ethier</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    /* ─── RESET ──────────────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    button { font-family: inherit; cursor: pointer; border: none; background: none; }
+
+    /* ─── TOKENS ─────────────────────────────────────────────────── */
+    :root {
+      --bg:          #0a0a0f;
+      --surface:     rgba(255,255,255,0.04);
+      --surface-2:   rgba(255,255,255,0.08);
+      --border:      rgba(255,255,255,0.09);
+      --border-2:    rgba(255,255,255,0.14);
+      --accent:      #00e5a0;
+      --accent-dim:  rgba(0,229,160,0.12);
+      --accent-glow: rgba(0,229,160,0.25);
+      --purple:      #7c3aed;
+      --purple-dim:  rgba(124,58,237,0.15);
+      --text:        #eeeef5;
+      --text-muted:  #7a7a8e;
+      --text-dim:    #44445a;
+      --warning:     #ffd60a;
+      --radius-lg:   20px;
+      --radius:      14px;
+      --radius-sm:   10px;
+      --font:        'Outfit', system-ui, sans-serif;
+      --ease:        cubic-bezier(0.4, 0, 0.2, 1);
+      --spring:      cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    /* ─── BASE ───────────────────────────────────────────────────── */
+    html { height: 100%; background: var(--bg); }
+    body {
+      min-height: 100dvh;
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font);
+      -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
+    }
+
+    /* ─── SCREENS ────────────────────────────────────────────────── */
+    .screen { display: none; min-height: 100dvh; }
+    .screen.active {
+      display: block;
+      animation: screenIn 0.28s var(--ease) forwards;
+    }
+    @keyframes screenIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    ::-webkit-scrollbar { width: 3px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--border-2); border-radius: 99px; }
+
+    /* ══════════════════════════════════════════════════════════════
+       HOME SCREEN
+    ══════════════════════════════════════════════════════════════ */
+    .home-hero {
+      position: relative;
+      padding: 64px 24px 44px;
+      overflow: hidden;
+      background: linear-gradient(160deg, #0a0a0f 0%, #10061d 55%, #051a10 100%);
+    }
+    .home-hero::before {
+      content: '';
+      position: absolute; top: -60%; left: -20%;
+      width: 80%; height: 200%;
+      background: radial-gradient(ellipse, rgba(0,229,160,0.13) 0%, transparent 65%);
+      pointer-events: none;
+    }
+    .home-hero::after {
+      content: '';
+      position: absolute; top: -30%; right: -25%;
+      width: 70%; height: 160%;
+      background: radial-gradient(ellipse, rgba(124,58,237,0.1) 0%, transparent 60%);
+      pointer-events: none;
+    }
+    .home-badge {
+      position: relative; z-index: 1;
+      display: inline-flex; align-items: center; gap: 6px;
+      background: var(--accent-dim);
+      border: 1px solid rgba(0,229,160,0.28);
+      color: var(--accent);
+      font-size: 11px; font-weight: 700; letter-spacing: 1.8px; text-transform: uppercase;
+      padding: 5px 13px; border-radius: 99px; margin-bottom: 18px;
+    }
+    .home-title {
+      position: relative; z-index: 1;
+      font-size: 40px; font-weight: 900; line-height: 1.08;
+      letter-spacing: -1px; margin-bottom: 10px;
+    }
+    .home-title .grad {
+      background: linear-gradient(135deg, var(--accent) 0%, #00b8ff 100%);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    }
+    .home-subtitle {
+      position: relative; z-index: 1;
+      font-size: 15px; color: var(--text-muted); line-height: 1.55;
+    }
+    .home-pills {
+      position: relative; z-index: 1;
+      display: flex; gap: 10px; flex-wrap: wrap; margin-top: 22px;
+    }
+    .home-pill {
+      display: flex; align-items: center; gap: 7px;
+      font-size: 12px; font-weight: 600; color: var(--text-muted);
+      background: rgba(255,255,255,0.05); border: 1px solid var(--border-2);
+      border-radius: 99px; padding: 5px 12px;
+    }
+    .home-pill .dot { width: 5px; height: 5px; border-radius: 50%; background: var(--accent); }
+    .home-body { padding: 28px 20px 48px; }
+    .section-label {
+      font-size: 10px; font-weight: 800; letter-spacing: 2.5px; text-transform: uppercase;
+      color: var(--text-dim); margin-bottom: 16px;
+    }
+
+    /* Routine Cards */
+    .routine-card {
+      position: relative; overflow: hidden;
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius-lg); padding: 20px 18px; margin-bottom: 14px;
+      cursor: pointer;
+      transition: transform 0.15s var(--ease), border-color 0.2s var(--ease);
+      -webkit-tap-highlight-color: transparent;
+    }
+    .routine-card::before {
+      content: ''; position: absolute; inset: 0; opacity: 0;
+      transition: opacity 0.2s var(--ease);
+    }
+    .routine-card.beginner::before { background: linear-gradient(135deg, rgba(0,229,160,0.07), transparent 60%); }
+    .routine-card.glute::before    { background: linear-gradient(135deg, rgba(255,80,100,0.07), transparent 60%); }
+    .routine-card.advanced::before { background: linear-gradient(135deg, rgba(124,58,237,0.09), transparent 60%); }
+    .routine-card:active { transform: scale(0.975); }
+    .routine-card:active::before { opacity: 1; }
+    .routine-card.beginner:active { border-color: rgba(0,229,160,0.35); }
+    .routine-card.glute:active    { border-color: rgba(255,80,100,0.35); }
+    .routine-card.advanced:active { border-color: rgba(124,58,237,0.35); }
+
+    .rc-head { display: flex; align-items: center; gap: 14px; margin-bottom: 14px; }
+    .rc-icon {
+      width: 50px; height: 50px; border-radius: 14px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 24px; flex-shrink: 0;
+    }
+    .rc-icon.b { background: rgba(0,229,160,0.13); }
+    .rc-icon.g { background: rgba(255,80,100,0.13); }
+    .rc-icon.a { background: rgba(124,58,237,0.15); }
+    .rc-text { flex: 1; }
+    .rc-name { font-size: 20px; font-weight: 800; letter-spacing: -0.3px; }
+    .rc-sub  { font-size: 13px; color: var(--text-muted); margin-top: 2px; }
+    .rc-pill {
+      font-size: 11px; font-weight: 700; color: var(--accent);
+      background: var(--accent-dim); border: 1px solid rgba(0,229,160,0.2);
+      border-radius: 99px; padding: 4px 10px; white-space: nowrap;
+    }
+    .rc-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+    .rc-chip {
+      font-size: 12px; font-weight: 500; color: var(--text-muted);
+      background: rgba(255,255,255,0.05); border: 1px solid var(--border);
+      border-radius: 99px; padding: 3px 10px;
+    }
+
+    /* ══════════════════════════════════════════════════════════════
+       EXERCISE LIST SCREEN
+    ══════════════════════════════════════════════════════════════ */
+    .list-header {
+      position: sticky; top: 0; z-index: 20;
+      background: rgba(10,10,15,0.94);
+      backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border);
+      padding: 14px 20px 16px;
+    }
+    .back-btn {
+      display: inline-flex; align-items: center; gap: 5px;
+      color: var(--accent); font-size: 14px; font-weight: 700;
+      margin-bottom: 10px; padding: 0; transition: opacity 0.15s;
+    }
+    .back-btn:active { opacity: 0.65; }
+    .list-title { font-size: 28px; font-weight: 900; letter-spacing: -0.5px; }
+    .list-sub   { font-size: 13px; color: var(--text-muted); margin-top: 4px; }
+
+    .list-start-btn {
+      display: block; margin: 18px 20px 0; width: calc(100% - 40px);
+      background: linear-gradient(135deg, var(--accent), #00c8ff);
+      color: #000; font-size: 15px; font-weight: 800; letter-spacing: 0.3px;
+      border-radius: var(--radius); padding: 15px;
+      transition: transform 0.15s var(--ease), opacity 0.15s;
+    }
+    .list-start-btn:active { transform: scale(0.97); opacity: 0.9; }
+
+    .ex-list { padding: 14px 20px 16px; }
+
+    .ex-item {
+      display: flex; align-items: center; gap: 13px;
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 14px; margin-bottom: 10px;
+      cursor: pointer;
+      transition: transform 0.13s var(--ease), background 0.15s;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .ex-item:active { transform: scale(0.975); background: var(--surface-2); }
+
+    /* Optional add-ons section in list */
+    .list-addons-section {
+      margin: 4px 0 40px;
+      background: var(--purple-dim);
+      border: 1px solid rgba(124,58,237,0.28);
+      border-radius: var(--radius);
+      padding: 16px;
+    }
+    .list-addons-title {
+      display: flex; align-items: center; gap: 8px;
+      font-size: 14px; font-weight: 800; margin-bottom: 6px;
+    }
+    .list-addons-title .badge {
+      font-size: 10px; font-weight: 800; letter-spacing: 1px; text-transform: uppercase;
+      color: #a78bfa; background: rgba(124,58,237,0.2);
+      border: 1px solid rgba(124,58,237,0.3); border-radius: 99px; padding: 2px 8px;
+    }
+    .list-addons-desc { font-size: 13px; color: var(--text-muted); line-height: 1.5; }
+    .list-addons-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+    .list-addons-chip {
+      font-size: 12px; color: #a78bfa;
+      background: rgba(124,58,237,0.12); border: 1px solid rgba(124,58,237,0.22);
+      border-radius: 99px; padding: 3px 10px;
+    }
+
+    .ex-num {
+      width: 36px; height: 36px; border-radius: 10px;
+      background: var(--accent-dim); border: 1px solid rgba(0,229,160,0.25);
+      color: var(--accent); font-size: 14px; font-weight: 800;
+      display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+    }
+    .ex-info { flex: 1; min-width: 0; }
+    .ex-name { font-size: 15px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .ex-meta { font-size: 13px; color: var(--text-muted); margin-top: 2px; }
+    .ex-chevron { color: var(--text-dim); font-size: 20px; flex-shrink: 0; }
+
+    /* ══════════════════════════════════════════════════════════════
+       OPTIONAL PICKER SCREEN
+    ══════════════════════════════════════════════════════════════ */
+    .picker-screen {
+      display: flex; flex-direction: column; min-height: 100dvh;
+    }
+    .picker-header {
+      position: sticky; top: 0; z-index: 20;
+      background: rgba(10,10,15,0.94);
+      backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border);
+      padding: 14px 20px 16px;
+    }
+    .picker-title { font-size: 26px; font-weight: 900; letter-spacing: -0.5px; margin-top: 4px; }
+    .picker-sub   { font-size: 14px; color: var(--text-muted); margin-top: 4px; line-height: 1.5; }
+
+    .picker-body { flex: 1; overflow-y: auto; padding: 16px 20px 0; }
+
+    .opt-card {
+      position: relative;
+      display: flex; align-items: flex-start; gap: 14px;
+      background: var(--surface); border: 2px solid var(--border);
+      border-radius: var(--radius); padding: 16px; margin-bottom: 12px;
+      cursor: pointer; transition: all 0.18s var(--ease);
+      -webkit-tap-highlight-color: transparent;
+    }
+    .opt-card:active { transform: scale(0.975); }
+    .opt-card.selected {
+      border-color: var(--accent);
+      background: var(--accent-dim);
+    }
+    .opt-card.disabled {
+      opacity: 0.4; pointer-events: none;
+    }
+
+    .opt-check-ring {
+      width: 26px; height: 26px; flex-shrink: 0;
+      border-radius: 50%;
+      border: 2px solid var(--border-2);
+      background: transparent;
+      display: flex; align-items: center; justify-content: center;
+      margin-top: 1px;
+      transition: all 0.18s var(--spring);
+    }
+    .opt-card.selected .opt-check-ring {
+      border-color: var(--accent);
+      background: var(--accent);
+    }
+    .opt-check-mark { font-size: 13px; display: none; }
+    .opt-card.selected .opt-check-mark { display: block; }
+
+    .opt-card-body { flex: 1; }
+    .opt-card-name { font-size: 16px; font-weight: 800; letter-spacing: -0.2px; margin-bottom: 3px; }
+    .opt-card-muscle {
+      display: inline-block; font-size: 11px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase;
+      color: #a78bfa; margin-bottom: 6px;
+    }
+    .opt-card-desc { font-size: 13px; color: var(--text-muted); line-height: 1.5; }
+    .opt-card-reps { font-size: 13px; font-weight: 700; color: var(--accent); margin-top: 6px; }
+
+    .picker-footer {
+      position: sticky; bottom: 0;
+      background: rgba(10,10,15,0.97);
+      backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+      border-top: 1px solid var(--border);
+      padding: 14px 20px;
+      padding-bottom: max(14px, env(safe-area-inset-bottom));
+    }
+    .picker-sel-count {
+      font-size: 12px; font-weight: 700; text-align: center;
+      color: var(--text-muted); margin-bottom: 10px; letter-spacing: 0.3px;
+    }
+    .picker-sel-count span { color: var(--accent); }
+    .picker-footer-row { display: flex; gap: 10px; }
+    .picker-skip-btn {
+      flex: 0.7; padding: 14px;
+      background: var(--surface-2); border: 1px solid var(--border-2);
+      border-radius: var(--radius);
+      color: var(--text-muted); font-size: 14px; font-weight: 700;
+      transition: all 0.13s;
+    }
+    .picker-skip-btn:active { opacity: 0.7; }
+    .picker-add-btn {
+      flex: 1.3; padding: 14px;
+      background: linear-gradient(135deg, #a78bfa, var(--purple));
+      border-radius: var(--radius);
+      color: #fff; font-size: 15px; font-weight: 800;
+      transition: all 0.13s var(--ease);
+    }
+    .picker-add-btn:disabled { opacity: 0.3; pointer-events: none; }
+    .picker-add-btn:active { transform: scale(0.97); }
+
+    /* ══════════════════════════════════════════════════════════════
+       EXERCISE DETAIL SCREEN
+    ══════════════════════════════════════════════════════════════ */
+    .detail-screen { display: flex; flex-direction: column; }
+    .detail-header {
+      position: sticky; top: 0; z-index: 20;
+      background: rgba(10,10,15,0.94);
+      backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border);
+      padding: 12px 20px 12px;
+    }
+    .detail-topbar {
+      display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px;
+    }
+    .progress-label { font-size: 13px; font-weight: 700; color: var(--text-muted); }
+    .prog-track { height: 3px; background: rgba(255,255,255,0.06); border-radius: 99px; overflow: hidden; }
+    .prog-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--accent), #00c8ff);
+      border-radius: 99px; transition: width 0.4s var(--ease);
+    }
+
+    .detail-body {
+      flex: 1; overflow-y: auto; padding: 20px 20px 0;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    /* Tags */
+    .tag-row { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 10px; }
+    .tag {
+      display: inline-flex; align-items: center; gap: 5px;
+      font-size: 11px; font-weight: 800; letter-spacing: 1.5px; text-transform: uppercase;
+      border-radius: 99px; padding: 4px 12px;
+    }
+    .tag.push      { color: var(--accent);   background: var(--accent-dim);       border: 1px solid rgba(0,229,160,0.22); }
+    .tag.pull      { color: #60a5fa;          background: rgba(96,165,250,0.12);   border: 1px solid rgba(96,165,250,0.22); }
+    .tag.legs      { color: #f59e0b;          background: rgba(245,158,11,0.12);   border: 1px solid rgba(245,158,11,0.22); }
+    .tag.hinge     { color: #fb923c;          background: rgba(251,146,60,0.12);   border: 1px solid rgba(251,146,60,0.22); }
+    .tag.shoulders { color: #e879f9;          background: rgba(232,121,249,0.12);  border: 1px solid rgba(232,121,249,0.22); }
+    .tag.optional  { color: #a78bfa;          background: var(--purple-dim);       border: 1px solid rgba(124,58,237,0.28); }
+    .tag.superset  { color: var(--warning);   background: rgba(255,214,10,0.1);    border: 1px solid rgba(255,214,10,0.25); }
+
+    .ex-title { font-size: 30px; font-weight: 900; letter-spacing: -0.6px; line-height: 1.12; margin-bottom: 16px; }
+
+    /* Sets/Reps Bar */
+    .sr-bar {
+      display: flex; align-items: stretch;
+      background: var(--surface-2); border: 1px solid var(--border-2);
+      border-radius: var(--radius); overflow: hidden; margin-bottom: 20px;
+    }
+    .sr-cell {
+      flex: 1; padding: 12px 14px;
+      display: flex; flex-direction: column; align-items: center; gap: 2px;
+    }
+    .sr-cell + .sr-cell { border-left: 1px solid var(--border); }
+    .sr-lab { font-size: 10px; font-weight: 800; letter-spacing: 1.5px; text-transform: uppercase; color: var(--text-dim); }
+    .sr-val { font-size: 22px; font-weight: 900; color: var(--accent); letter-spacing: -0.5px; }
+    .sr-val.muted { font-size: 14px; color: var(--text-muted); font-weight: 600; }
+
+    /* GIF */
+    .gif-wrap {
+      width: 100%; aspect-ratio: 4/3;
+      background: #111; border: 1px solid var(--border);
+      border-radius: var(--radius-lg); overflow: hidden;
+      position: relative; margin-bottom: 8px;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .gif-img { width: 100%; height: 100%; object-fit: contain; display: block; }
+    .gif-spinner {
+      position: absolute; inset: 0;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      gap: 10px; color: var(--text-muted); font-size: 13px; background: #111;
+    }
+    .spinner-ring {
+      width: 32px; height: 32px;
+      border: 3px solid rgba(255,255,255,0.08); border-top-color: var(--accent);
+      border-radius: 50%; animation: spin 0.75s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .gif-fallback {
+      display: none;
+      flex-direction: column; align-items: center; justify-content: center;
+      gap: 8px; padding: 24px; text-align: center;
+      color: var(--text-muted); font-size: 13px;
+      position: absolute; inset: 0; background: #111;
+    }
+    .gif-fallback .icon { font-size: 36px; }
+    .gif-note-bar {
+      font-size: 11px; color: var(--warning);
+      background: rgba(255,214,10,0.08); border: 1px solid rgba(255,214,10,0.22);
+      border-radius: 8px; padding: 5px 12px; margin-top: 4px;
+    }
+
+    /* Superset toggle */
+    .ss-toggle { display: flex; gap: 8px; margin-bottom: 10px; }
+    .ss-btn {
+      flex: 1; background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius-sm); color: var(--text-muted);
+      font-size: 12px; font-weight: 700; padding: 9px 6px;
+      transition: all 0.18s var(--ease);
+    }
+    .ss-btn.on { background: var(--accent-dim); border-color: rgba(0,229,160,0.35); color: var(--accent); }
+
+    /* Set Tracker */
+    .tracker-section { margin-bottom: 20px; }
+    .tracker-label { font-size: 11px; font-weight: 800; letter-spacing: 2px; text-transform: uppercase; color: var(--text-dim); margin-bottom: 12px; }
+    .tracker-row { display: flex; gap: 12px; }
+    .set-circle {
+      flex: 1; aspect-ratio: 1; max-width: 88px; border-radius: 50%;
+      border: 2px solid var(--border-2); background: var(--surface);
+      cursor: pointer; display: flex; flex-direction: column;
+      align-items: center; justify-content: center; gap: 2px;
+      transition: all 0.18s var(--spring);
+      -webkit-tap-highlight-color: transparent; user-select: none;
+    }
+    .set-circle:active { transform: scale(0.88); }
+    .set-circle.done { border-color: var(--accent); background: var(--accent-dim); box-shadow: 0 0 0 4px var(--accent-glow); }
+    .sc-lab { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-dim); }
+    .sc-num { font-size: 22px; font-weight: 900; color: var(--text-muted); }
+    .sc-check { display: none; font-size: 26px; }
+    .set-circle.done .sc-lab   { display: none; }
+    .set-circle.done .sc-num   { display: none; }
+    .set-circle.done .sc-check { display: block; }
+
+    /* Cues */
+    .cues-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); overflow: hidden; margin-bottom: 24px;
+    }
+    .cues-head {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 14px 16px; cursor: pointer; font-size: 14px; font-weight: 800;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .cues-arrow { font-size: 20px; color: var(--accent); transition: transform 0.25s var(--ease); }
+    .cues-card.open .cues-arrow { transform: rotate(180deg); }
+    .cues-body { max-height: 0; overflow: hidden; transition: max-height 0.38s var(--ease); }
+    .cues-card.open .cues-body { max-height: 700px; }
+    .cues-inner { padding: 0 16px 16px; display: flex; flex-direction: column; gap: 12px; }
+    .cue { display: flex; gap: 11px; font-size: 14px; line-height: 1.55; color: var(--text); }
+    .cue-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); margin-top: 8px; flex-shrink: 0; }
+
+    .gif-warn {
+      font-size: 11px; color: var(--warning);
+      background: rgba(255,214,10,0.08); border: 1px solid rgba(255,214,10,0.22);
+      border-radius: 8px; padding: 7px 12px; margin-bottom: 16px;
+    }
+
+    /* ─── YOUTUBE LINK ──────────────────────────────────────────── */
+    .yt-link {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: rgba(255,0,0,0.1);
+      border: 1px solid rgba(255,60,60,0.3);
+      border-radius: 99px;
+      color: #ff6b6b;
+      font-size: 13px; font-weight: 700;
+      padding: 8px 16px;
+      text-decoration: none;
+      margin-bottom: 20px;
+      transition: background 0.15s, border-color 0.15s;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .yt-link:active { background: rgba(255,0,0,0.18); border-color: rgba(255,60,60,0.5); }
+    .yt-link .yt-icon { font-size: 16px; }
+    .yt-link .yt-ts { opacity: 0.7; font-weight: 600; font-size: 12px; margin-left: 2px; }
+
+    /* ─── DETAIL FOOTER ──────────────────────────────────────────── */
+    .detail-footer {
+      position: sticky; bottom: 0;
+      background: rgba(10,10,15,0.97);
+      backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+      border-top: 1px solid var(--border);
+      padding: 14px 20px;
+      padding-bottom: max(14px, env(safe-area-inset-bottom));
+    }
+    .footer-row { display: flex; gap: 10px; }
+    .nav-btn {
+      flex: 1; padding: 14px; border-radius: var(--radius);
+      font-size: 15px; font-weight: 800;
+      transition: transform 0.13s var(--ease), opacity 0.13s;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .nav-btn:active { transform: scale(0.96); opacity: 0.85; }
+    .nav-btn:disabled { opacity: 0.25; pointer-events: none; }
+    .nav-btn.prev { color: var(--text); background: var(--surface-2); border: 1px solid var(--border-2); flex: 0.7; }
+    .nav-btn.next { color: #000; background: linear-gradient(135deg, var(--accent), #00c8ff); flex: 1.3; }
+    .nav-btn.addons { color: #fff; background: linear-gradient(135deg, #a78bfa, var(--purple)); flex: 1.3; }
+    .nav-btn.finish { color: #000; background: linear-gradient(135deg, #ffd60a, #ff6b35); flex: 1.3; }
+
+    /* ══════════════════════════════════════════════════════════════
+       WORKOUT COMPLETE
+    ══════════════════════════════════════════════════════════════ */
+    .complete {
+      display: none; position: fixed; inset: 0; z-index: 999;
+      background: rgba(10,10,15,0.97);
+      flex-direction: column; align-items: center; justify-content: center;
+      text-align: center; padding: 40px 32px;
+    }
+    .complete.show { display: flex; animation: screenIn 0.3s var(--ease) forwards; }
+    .complete-trophy { font-size: 80px; margin-bottom: 24px; animation: popIn 0.5s var(--spring) forwards; }
+    @keyframes popIn { from { transform: scale(0) rotate(-15deg); opacity: 0; } to { transform: scale(1) rotate(0); opacity: 1; } }
+    .complete-title {
+      font-size: 44px; font-weight: 900; letter-spacing: -1.5px; margin-bottom: 10px;
+      background: linear-gradient(135deg, var(--accent), #00c8ff);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    }
+    .complete-sub { font-size: 16px; color: var(--text-muted); line-height: 1.6; margin-bottom: 40px; }
+    .complete-sub strong { color: var(--text); }
+    .complete-home {
+      color: #000; font-size: 16px; font-weight: 800;
+      background: linear-gradient(135deg, var(--accent), #00c8ff);
+      border-radius: var(--radius); padding: 16px 36px;
+      transition: transform 0.13s var(--ease);
+    }
+    .complete-home:active { transform: scale(0.96); }
+  </style>
+</head>
+<body>
+
+<!-- ══════ HOME SCREEN ══════ -->
+<div id="screen-home" class="screen active">
+  <div class="home-hero">
+    <div class="home-badge">💪 Jeremy Ethier</div>
+    <h1 class="home-title">The <span class="grad">6+1</span><br>Full Body<br>Program</h1>
+    <p class="home-subtitle">Science-based 3×/week split —<br>6 core lifts + 1–2 optional add-ons</p>
+    <div class="home-pills">
+      <div class="home-pill"><span class="dot"></span> 3 days/week</div>
+      <div class="home-pill"><span class="dot"></span> 6 main lifts</div>
+      <div class="home-pill"><span class="dot"></span> Full body</div>
+    </div>
+  </div>
+  <div class="home-body">
+    <div class="section-label">Choose your routine</div>
+
+    <div class="routine-card beginner" onclick="selectRoutine('beginner')">
+      <div class="rc-head">
+        <div class="rc-icon b">🌱</div>
+        <div class="rc-text">
+          <div class="rc-name">Beginner</div>
+          <div class="rc-sub">Full Body Foundation</div>
+        </div>
+        <div class="rc-pill">6 + add-ons</div>
+      </div>
+      <div class="rc-chips">
+        <span class="rc-chip">DB Press</span>
+        <span class="rc-chip">Goblet Squat</span>
+        <span class="rc-chip">Pull-Ups</span>
+        <span class="rc-chip">DB RDL</span>
+        <span class="rc-chip">Cable Row</span>
+        <span class="rc-chip">Lateral Raise</span>
+      </div>
+    </div>
+
+    <div class="routine-card glute" onclick="selectRoutine('glute')">
+      <div class="rc-head">
+        <div class="rc-icon g">🍑</div>
+        <div class="rc-text">
+          <div class="rc-name">Glute Emphasis</div>
+          <div class="rc-sub">Glute &amp; Hamstring Focus</div>
+        </div>
+        <div class="rc-pill">6 + add-ons</div>
+      </div>
+      <div class="rc-chips">
+        <span class="rc-chip">DB Press</span>
+        <span class="rc-chip">Box Squat</span>
+        <span class="rc-chip">Inverted Row</span>
+        <span class="rc-chip">DB RDL</span>
+        <span class="rc-chip">Cable Row</span>
+        <span class="rc-chip">Lateral Raise</span>
+      </div>
+    </div>
+
+    <div class="routine-card advanced" onclick="selectRoutine('advanced')">
+      <div class="rc-head">
+        <div class="rc-icon a">⚡</div>
+        <div class="rc-text">
+          <div class="rc-name">Advanced</div>
+          <div class="rc-sub">Heavy Compound Focus</div>
+        </div>
+        <div class="rc-pill">6 + add-ons</div>
+      </div>
+      <div class="rc-chips">
+        <span class="rc-chip">DB Press</span>
+        <span class="rc-chip">Barbell Squat</span>
+        <span class="rc-chip">Weighted Pull-Ups</span>
+        <span class="rc-chip">Barbell RDL</span>
+        <span class="rc-chip">Cable Row</span>
+        <span class="rc-chip">Lateral Raise</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════ EXERCISE LIST SCREEN ══════ -->
+<div id="screen-list" class="screen">
+  <div class="list-header">
+    <button class="back-btn" onclick="goHome()">← Back</button>
+    <div id="list-title" class="list-title"></div>
+    <div id="list-sub" class="list-sub"></div>
+  </div>
+  <button class="list-start-btn" onclick="startRoutine()">▶ Start from Exercise 1</button>
+  <div id="ex-list" class="ex-list"></div>
+</div>
+
+<!-- ══════ OPTIONAL PICKER SCREEN ══════ -->
+<div id="screen-picker" class="screen picker-screen">
+  <div class="picker-header">
+    <button class="back-btn" onclick="goToList()" style="margin-bottom:8px">← Back to List</button>
+    <div class="picker-title">✦ Choose Add-ons</div>
+    <div class="picker-sub">Pick <strong>1–2</strong> based on your weak points. You can skip if you're short on time.</div>
+  </div>
+  <div class="picker-body" id="picker-body"></div>
+  <div class="picker-footer">
+    <div class="picker-sel-count" id="picker-count">
+      <span id="sel-num">0</span> of 2 selected
+    </div>
+    <div class="picker-footer-row">
+      <button class="picker-skip-btn" onclick="skipAddons()">Skip</button>
+      <button class="picker-add-btn" id="picker-add-btn" onclick="addOptionals()" disabled>Add to Workout →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════ EXERCISE DETAIL SCREEN ══════ -->
+<div id="screen-detail" class="screen detail-screen">
+  <div class="detail-header">
+    <div class="detail-topbar">
+      <button class="back-btn" style="margin-bottom:0" onclick="detailBack()">← Exercise List</button>
+      <span class="progress-label" id="prog-text"></span>
+    </div>
+    <div class="prog-track">
+      <div class="prog-fill" id="prog-bar"></div>
+    </div>
+  </div>
+  <div class="detail-body" id="detail-body"></div>
+  <div class="detail-footer">
+    <div class="footer-row">
+      <button class="nav-btn prev" id="btn-prev" onclick="prevEx()">← Prev</button>
+      <button class="nav-btn next" id="btn-next" onclick="nextEx()">Next →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════ WORKOUT COMPLETE OVERLAY ══════ -->
+<div id="complete-overlay" class="complete">
+  <div class="complete-trophy">🏆</div>
+  <div class="complete-title">Workout Done!</div>
+  <div class="complete-sub">
+    You crushed the <strong id="complete-routine"></strong> routine.<br>
+    Rest up and come back stronger. 💪
+  </div>
+  <button class="complete-home" onclick="goHome()">← Back to Home</button>
+</div>
+
+<script>
+  /* ══════════════════════════════════════════════════════════════
+     DATA — EXERCISE DEFINITIONS
+  ══════════════════════════════════════════════════════════════ */
+  const GIF = 'https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/';
+
+  const EXERCISES = {
+    /* ── MAIN EXERCISES ── */
+    'low-incline-db-press': {
+      name: 'Low Incline Dumbbell Press',
+      muscle: 'Chest · Shoulders · Triceps',
+      tag: 'push',
+      gif: GIF + 'videos/0314-ns0SIbU.gif',
+      cues: [
+        'Find YOUR angle: stand flat against a wall, phone on sternum. Flat sternum → 1 notch up. Sternum angling back → 2 notches up.',
+        'Tuck elbows slightly as you press — like pressing in an arrow shape, NOT flared out wings.',
+        'Lower with a slow, controlled eccentric. Feel the chest stretch at the bottom.',
+        'Press up without locking elbows at the top — keep tension on the chest throughout.',
+        'Beginner: 10–15 reps · Advanced: 6–8 reps. Women often respond better to the higher end.',
+      ]
+    },
+    'goblet-squat': {
+      name: 'Goblet Squat',
+      muscle: 'Quads · Glutes',
+      tag: 'legs',
+      gif: GIF + 'videos/1760-yn8yg1r.gif',
+      cues: [
+        'Hold dumbbell or kettlebell vertically at your chest, elbows pointing down and inside your knees.',
+        'Feet slightly wider than shoulder-width, toes slightly turned out.',
+        'Sit deep — chest tall, back straight. Elbows should NOT cave into your knees.',
+        'Push through heels to stand, squeeze glutes at the top.',
+        'Build to 3 sets of 10 reps with at least ½ your bodyweight before progressing to barbell squat.',
+      ]
+    },
+    'barbell-squat': {
+      name: 'Barbell Squat',
+      muscle: 'Quads · Glutes · Core',
+      tag: 'legs',
+      gif: GIF + 'videos/0852-JZuApnB.gif',
+      gifNote: 'Replace with a barbell back squat GIF for best accuracy',
+      cues: [
+        'Test 3 stances to find what works for YOUR hips: (1) Shoulder-width, slight toe-out (2) Narrow, toes forward (3) Wide, toes way out.',
+        'More quads: elevate your heels. More glutes: use a box behind you, push hips back, keep shins vertical.',
+        'Big breath in, brace your core hard. Hips back and down — do not collapse forward.',
+        'Knees track in line with your toes. Do NOT let them cave inward.',
+        'Don\'t be afraid of heavy weight. Aim for 6–10 reps with good form.',
+      ]
+    },
+    'box-squat': {
+      name: 'Box Squat',
+      muscle: 'Glutes · Quads · Hamstrings',
+      tag: 'legs',
+      gif: GIF + 'videos/1760-yn8yg1r.gif',
+      gifNote: 'Replace with a box squat GIF for best accuracy',
+      cues: [
+        'Set a box or bench directly behind you. Initiate by pushing hips BACK and sitting onto it.',
+        'Keep shins as vertical as possible — this is the key to maximizing glute activation.',
+        'Sit onto the box briefly (don\'t relax completely), then drive through heels explosively to stand.',
+        'Brace core hard throughout. Maintain chest up and back flat.',
+        'Aim for 6–8 reps with controlled, deliberate form.',
+      ]
+    },
+    'neutral-grip-pullup': {
+      name: 'Neutral Grip Pull-Ups',
+      muscle: 'Back Width · Biceps',
+      tag: 'pull',
+      gif: GIF + 'videos/0651-0V2YQjW.gif',
+      cues: [
+        'Grip parallel handles at shoulder width. Start with arms fully extended, dead hang.',
+        'Think "elbows to hips" — not "chin over bar". This fires your lats much better.',
+        'Lead with your chest rising, squeeze shoulder blades down and back as you pull.',
+        'Can\'t do one yet? → Start with inverted rows → build to 3×15 → add band assistance.',
+        'Goal: 3 sets of 10 unassisted before upgrading to overhand pull-ups.',
+      ]
+    },
+    'weighted-pullup': {
+      name: 'Weighted Pull-Ups',
+      muscle: 'Back Width · Biceps',
+      tag: 'pull',
+      gif: GIF + 'videos/0841-HMzLjXx.gif',
+      cues: [
+        'Attach weight via dip belt, or hold a dumbbell between your feet.',
+        'Overhand (pronated) grip. Same strict form as bodyweight — zero kipping.',
+        'Think "elbows to hips". Chest forward. Squeeze hard at the top.',
+        'Each time you hit 8 clean reps, add a small amount of weight next session.',
+        'Quality over quantity — a slow, controlled rep beats a fast, sloppy one every time.',
+      ]
+    },
+    'inverted-row': {
+      name: 'Inverted Row',
+      muscle: 'Back · Biceps · Rear Delts',
+      tag: 'pull',
+      gif: GIF + 'videos/0499-bZGHsAZ.gif',
+      cues: [
+        'Set bar at hip height. Grip it, walk under, hang with arms fully extended — heels on floor.',
+        'Body forms a rigid plank from head to heels. Squeeze your glutes to lock this in.',
+        'Pull your elbows toward your hips in an arrow shape — do NOT shrug your shoulders.',
+        'Squeeze shoulder blades together hard at the top of each rep. Hold 1 sec.',
+        'Build to 3 sets of 15 here before progressing to full pull-ups.',
+      ]
+    },
+    'db-rdl': {
+      name: 'Dumbbell Romanian Deadlift',
+      muscle: 'Hamstrings · Glutes · Lower Back',
+      tag: 'hinge',
+      gif: GIF + 'videos/1459-rR0LJzx.gif',
+      cues: [
+        'Hip-width stance, toes straight forward. Try the "hop and stick" test — where you land naturally is your sweet spot.',
+        'Hip HINGE (not squat): brace core, push hips back, slight knee bend. Think "hips to the wall behind you".',
+        'Slide dumbbells close along your thighs, then shins as you descend. Keep them touching your legs.',
+        'Stop when your hamstrings hit their stretch limit — NOT when the weights reach the floor.',
+        'Drive hips forward to stand. Squeeze glutes at the top. 10–15 reps.',
+      ]
+    },
+    'db-rdl-glute': {
+      name: 'DB RDL — Glute Focus',
+      muscle: 'Glutes · Hamstrings',
+      tag: 'hinge',
+      gif: GIF + 'videos/1459-rR0LJzx.gif',
+      cues: [
+        'Same setup as standard RDL — hip-width stance, toes forward.',
+        'On the way DOWN, bend your knees noticeably MORE (like crossing into squat territory).',
+        'Push hips BACK far. Feel a deep glute stretch at the bottom.',
+        'Drive hips FORWARD to stand, squeezing glutes hard at the top.',
+        'This knee bend shifts tension from hamstrings toward the glutes. 10–15 reps.',
+      ]
+    },
+    'barbell-rdl': {
+      name: 'Barbell Romanian Deadlift',
+      muscle: 'Hamstrings · Glutes · Lower Back',
+      tag: 'hinge',
+      gif: GIF + 'videos/0085-wQ2c4XD.gif',
+      cues: [
+        'Overhand grip just outside hip width. Bar stays in contact with your legs throughout.',
+        'Hip hinge: big breath, brace core. Push hips back. Slight knee bend. Back FLAT — no rounding.',
+        'Bar slides along your thighs and shins as you descend. Shoulders stay packed.',
+        'Stop when you feel your hamstrings hit their limit. Drive hips forward to lockout.',
+        'Advanced: 6–10 heavy controlled reps. Prioritize feeling the muscle over moving maximum weight.',
+      ]
+    },
+    'cable-row': {
+      name: 'Cable Row',
+      muscle: 'Back Thickness · Rear Delts · Biceps',
+      tag: 'pull',
+      gif: GIF + 'videos/0861-fUBheHs.gif',
+      cues: [
+        'Use lat pulldown bar, grip just outside shoulder-width. Feet elevated on pegs. Sit tall, core braced.',
+        'Your hands are HOOKS — don\'t curl or overgrip. Power comes from your elbows.',
+        'Pull elbows in an arrow shape (back and in), squeezing shoulder blades together.',
+        'Pull until the bar nearly touches your lower chest. Control it slowly back to full extension.',
+        'Can\'t feel your back? Practice: let shoulder blades slide forward, then squeeze them back — without bending arms. Add weight only once you feel it.',
+      ]
+    },
+    'lateral-raise-superset': {
+      name: 'Lateral Raise Superset',
+      muscle: 'Side Delts · Rear Delts',
+      tag: 'shoulders',
+      isSuperset: true,
+      gif:  GIF + 'videos/0334-DsgkuIt.gif',
+      gif2: GIF + 'videos/0326-vYk8lqw.gif',
+      gifLabel:  '① Upright Lateral Raise',
+      gif2Label: '② Prone Rear Raise',
+      cues: [
+        'PART 1 — Sit upright on a HIGH incline bench. Sweep arms out and upward in a wide "Y" shape to failure. Very light weight.',
+        'PART 2 — Immediately flip to lie chest-down on the same bench. Raise arms out and slightly BACK (targets rear delts).',
+        'If chest-down is uncomfortable, put a rolled-up sweater or pad under your torso.',
+        'Light weight only — chase 10–20 reps per part, burn the muscle.',
+        'No rest between Part 1 and Part 2. Rest only after both are done. That\'s one set.',
+      ]
+    },
+
+    /* ── OPTIONAL EXERCISES ── */
+    'dead-bug': {
+      name: 'Dead Bug',
+      muscle: 'Core · Deep Abs',
+      tag: 'optional',
+      gif: GIF + 'videos/0276-iny3m5y.gif',
+      cues: [
+        'Lie on your back. Arms straight up toward ceiling. Knees bent 90°, lifted in the air.',
+        'THE KEY: Flatten your lower back COMPLETELY into the floor and hold it there the entire time.',
+        'Slowly lower your right arm + left leg simultaneously toward the floor (just above it).',
+        'Return to start before repeating on the other side. Never lose that lower back contact.',
+        '5 reps per side — quality beats quantity. Directly improves squat and deadlift stability.',
+      ]
+    },
+    'hip-abduction': {
+      name: 'Hip Abduction Machine',
+      muscle: 'Glute Medius · Upper Glutes',
+      tag: 'optional',
+      gif: GIF + 'videos/0597-CHpahtl.gif',
+      cues: [
+        'Seated hip abduction machine. Sit tall with core braced — don\'t slouch.',
+        'Controlled outward push — squeeze the upper glute shelf at full range.',
+        'SLOW return — don\'t let the pads slam back together. The slow negative is where growth happens.',
+        'Targets the glute medius — the muscle that creates the "upper glute shelf" look.',
+        '10–20 reps. Focus completely on the contraction, not the weight.',
+      ]
+    },
+    'calf-raise': {
+      name: 'Straight-Leg Calf Raise',
+      muscle: 'Gastrocnemius (Calves)',
+      tag: 'optional',
+      gif: GIF + 'videos/0417-dPmaUaU.gif',
+      cues: [
+        'Stand on the edge of a step or plate, heels hanging off, legs STRAIGHT (not bent at the knee).',
+        'Straight-leg raises target the gastrocnemius — the larger calf muscle. Bent-knee shifts to the soleus.',
+        'Rise all the way up on your toes, pause for 1 second, then lower as far down as possible for a full stretch.',
+        'Do NOT bounce at the bottom — control the full range on every rep.',
+        '15–20 reps. You can add weight (hold dumbbells) once bodyweight feels easy.',
+      ]
+    },
+    'arm-superset': {
+      name: 'Arm Superset',
+      muscle: 'Biceps · Triceps',
+      tag: 'optional',
+      isSuperset: true,
+      gif:  GIF + 'videos/0318-ae9UoXQ.gif',
+      gif2: GIF + 'videos/0430-PdmaD0N.gif',
+      gifLabel:  '① Incline Dumbbell Curls',
+      gif2Label: '② Overhead Tricep Extension',
+      cues: [
+        'CURLS — Sit on incline bench (3–4 notches back). Arms hang freely. Curl with pinkies slightly leading.',
+        'EXTENSION — Stand or sit. Dumbbell held with both hands overhead. Lower behind head, elbows pointed in.',
+        'Do CURLS immediately into EXTENSIONS with no rest between. Rest only after both.',
+        '8–12 reps each exercise, 3 full rounds total.',
+        'Tuck elbows tight during the extension — flared elbows shifts stress to your shoulder.',
+      ]
+    },
+    'chest-fly': {
+      name: 'Lean-Forward Chest Fly',
+      muscle: 'Upper Chest (Clavicular Head)',
+      tag: 'optional',
+      gif: GIF + 'videos/0319-ESOd5Pl.gif',
+      cues: [
+        'At pec deck or cable fly machine, lean your torso SLIGHTLY FORWARD before setting up.',
+        'This angles the resistance to match the line of pull of the HIGHEST part of your upper chest.',
+        'Arms arc from wide, stretched position to a close, squeezed center position.',
+        'Control the full range — don\'t rush the stretch. Squeeze hard at center.',
+        '10–15 reps with moderate weight. Slow tempo wins here.',
+      ]
+    },
+    'upper-traps-shrug': {
+      name: 'Upper Trap Shrugs',
+      muscle: 'Upper Trapezius',
+      tag: 'optional',
+      gif: GIF + 'videos/0406-NJzBsGJ.gif',
+      cues: [
+        'Hold dumbbells at your sides (or use a barbell). Stand tall, core engaged.',
+        'Shrug your shoulders STRAIGHT UP toward your ears — not forward, not back. Straight up.',
+        'Pause at the top for 1 second, then lower slowly with full control.',
+        'No head bobbing or momentum. This is purely an upper trap contraction.',
+        '8–15 reps. You can go relatively heavy here — upper traps are strong.',
+      ]
+    },
+  };
+
+  /* ══════════════════════════════════════════════════════════════
+     DATA — ROUTINES (6 main exercises only — optionals chosen at runtime)
+  ══════════════════════════════════════════════════════════════ */
+  /* ── YouTube timestamped links per exercise ── */
+  const YT_BASE = 'https://www.youtube.com/watch?v=n_YW24F5HGc';
+  const YT = {
+    /* Exercise 1 — Chest/Shoulders/Tris (0:41) */
+    'low-incline-db-press':   { url: YT_BASE + '&t=41s',  ts: '0:41'  },
+    /* Exercise 2 — Legs (2:19) */
+    'goblet-squat':           { url: YT_BASE + '&t=139s', ts: '2:19'  },
+    'barbell-squat':          { url: YT_BASE + '&t=139s', ts: '2:19'  },
+    'box-squat':              { url: YT_BASE + '&t=139s', ts: '2:19'  },
+    /* Exercise 3 — Back Width (4:23) */
+    'neutral-grip-pullup':    { url: YT_BASE + '&t=263s', ts: '4:23'  },
+    'weighted-pullup':        { url: YT_BASE + '&t=263s', ts: '4:23'  },
+    'inverted-row':           { url: YT_BASE + '&t=263s', ts: '4:23'  },
+    /* Exercise 4 — Hamstrings/Glutes (5:49) */
+    'db-rdl':                 { url: YT_BASE + '&t=349s', ts: '5:49'  },
+    'db-rdl-glute':           { url: YT_BASE + '&t=349s', ts: '5:49'  },
+    'barbell-rdl':            { url: YT_BASE + '&t=349s', ts: '5:49'  },
+    /* Exercise 5 — Back Thickness (7:37) */
+    'cable-row':              { url: YT_BASE + '&t=457s', ts: '7:37'  },
+    /* Exercise 6 — Shoulders (8:55) */
+    'lateral-raise-superset': { url: YT_BASE + '&t=535s', ts: '8:55'  },
+    /* Bonus / Optionals (10:22) */
+    'dead-bug':               { url: YT_BASE + '&t=622s', ts: '10:22' },
+    'hip-abduction':          { url: YT_BASE + '&t=622s', ts: '10:22' },
+    'calf-raise':             { url: YT_BASE + '&t=622s', ts: '10:22' },
+    'arm-superset':           { url: YT_BASE + '&t=622s', ts: '10:22' },
+    'chest-fly':              { url: YT_BASE + '&t=622s', ts: '10:22' },
+    'upper-traps-shrug':      { url: YT_BASE + '&t=622s', ts: '10:22' },
+  };
+
+  const ROUTINES = {
+    beginner: {
+      name: 'Beginner', icon: '🌱', sub: 'Full Body Foundation · 3×/week',
+      exercises: [
+        { id: 'low-incline-db-press',   sets: 3, reps: '10–15' },
+        { id: 'goblet-squat',           sets: 3, reps: '10–15' },
+        { id: 'neutral-grip-pullup',    sets: 3, reps: '5–8'   },
+        { id: 'db-rdl',                 sets: 3, reps: '10–15' },
+        { id: 'cable-row',              sets: 3, reps: '10–15' },
+        { id: 'lateral-raise-superset', sets: 3, reps: '10–20' },
+      ]
+    },
+    glute: {
+      name: 'Glute Emphasis', icon: '🍑', sub: 'Glute & Hamstring Focus · 3×/week',
+      exercises: [
+        { id: 'low-incline-db-press',   sets: 3, reps: '10–15' },
+        { id: 'box-squat',              sets: 3, reps: '6–8'   },
+        { id: 'inverted-row',           sets: 3, reps: '10–15' },
+        { id: 'db-rdl-glute',           sets: 3, reps: '10–15' },
+        { id: 'cable-row',              sets: 3, reps: '10–15' },
+        { id: 'lateral-raise-superset', sets: 3, reps: '10–20' },
+      ]
+    },
+    advanced: {
+      name: 'Advanced', icon: '⚡', sub: 'Heavy Compound Focus · 3×/week',
+      exercises: [
+        { id: 'low-incline-db-press',   sets: 3, reps: '6–8'   },
+        { id: 'barbell-squat',          sets: 3, reps: '6–8'   },
+        { id: 'weighted-pullup',        sets: 3, reps: '5–8'   },
+        { id: 'barbell-rdl',            sets: 3, reps: '6–10'  },
+        { id: 'cable-row',              sets: 3, reps: '10–15' },
+        { id: 'lateral-raise-superset', sets: 3, reps: '10–20' },
+      ]
+    }
+  };
+
+  /* All 6 optional add-ons — shown in the picker screen */
+  const ALL_OPTIONALS = [
+    {
+      id: 'dead-bug',
+      sets: 3, reps: '5/side',
+      weakPoint: 'Core stability',
+      why: 'Flattens your lower back and teaches anti-rotation — makes squats and deadlifts feel rock-solid.',
+    },
+    {
+      id: 'hip-abduction',
+      sets: 3, reps: '10–20',
+      weakPoint: 'Glute medius / upper glutes',
+      why: 'Builds the "upper glute shelf" — the medius muscle that sits above your main glutes.',
+    },
+    {
+      id: 'calf-raise',
+      sets: 3, reps: '15–20',
+      weakPoint: 'Calves',
+      why: 'Straight-leg position targets the gastrocnemius (larger calf). Bent-knee would only hit the soleus.',
+    },
+    {
+      id: 'arm-superset',
+      sets: 3, reps: '8–12 each',
+      weakPoint: 'Arm size (biceps + triceps)',
+      why: 'Back-to-back incline curls and overhead extensions for maximum arm pump.',
+    },
+    {
+      id: 'chest-fly',
+      sets: 3, reps: '10–15',
+      weakPoint: 'Upper chest',
+      why: 'Leaning forward on the fly machine targets the clavicular head — the very top of your chest.',
+    },
+    {
+      id: 'upper-traps-shrug',
+      sets: 3, reps: '8–15',
+      weakPoint: 'Upper traps / neck thickness',
+      why: 'Heavy shrugs isolate the upper trapezius for a thicker, more powerful-looking upper back.',
+    },
+  ];
+
+  /* ══════════════════════════════════════════════════════════════
+     STATE
+  ══════════════════════════════════════════════════════════════ */
+  let currentRoutine  = null;    // ROUTINES[key] + _key
+  let sessionExList   = [];      // exercises for this session (main + chosen optionals)
+  let currentIdx      = 0;
+  let selectedOptIds  = new Set(); // IDs selected in picker
+
+  /* ══════════════════════════════════════════════════════════════
+     NAVIGATION HELPERS
+  ══════════════════════════════════════════════════════════════ */
+  function showScreen(id) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+    window.scrollTo({ top: 0, behavior: 'instant' });
+  }
+
+  function goHome() {
+    document.getElementById('complete-overlay').classList.remove('show');
+    selectedOptIds.clear();
+    showScreen('screen-home');
+  }
+
+  function selectRoutine(key) {
+    currentRoutine = { ...ROUTINES[key], _key: key };
+    selectedOptIds.clear();
+    renderList();
+    showScreen('screen-list');
+  }
+
+  function goToList() {
+    showScreen('screen-list');
+  }
+
+  function startRoutine() {
+    currentIdx = 0;
+    // Build session with main exercises only for now
+    sessionExList = currentRoutine.exercises.map(e => ({ ...e, optional: false }));
+    renderDetail();
+    showScreen('screen-detail');
+  }
+
+  function jumpToExercise(i) {
+    currentIdx = i;
+    renderDetail();
+    showScreen('screen-detail');
+  }
+
+  function detailBack() {
+    // If we're in the optional phase, going back should go to list
+    showScreen('screen-list');
+  }
+
+  function prevEx() {
+    if (currentIdx > 0) {
+      currentIdx--;
+      renderDetail();
+      document.getElementById('detail-body').scrollTop = 0;
+    }
+  }
+
+  function nextEx() {
+    const total = sessionExList.length;
+    const mainCount = currentRoutine.exercises.length;
+
+    if (currentIdx < total - 1) {
+      // Move to next exercise
+      currentIdx++;
+      renderDetail();
+      document.getElementById('detail-body').scrollTop = 0;
+    } else if (currentIdx === mainCount - 1) {
+      // Just finished last MAIN exercise → go to picker
+      renderPicker();
+      showScreen('screen-picker');
+    } else {
+      // Finished last exercise (including any optionals)
+      document.getElementById('complete-routine').textContent = currentRoutine.name;
+      document.getElementById('complete-overlay').classList.add('show');
+    }
+  }
+
+  /* ══════════════════════════════════════════════════════════════
+     RENDER: EXERCISE LIST
+  ══════════════════════════════════════════════════════════════ */
+  function renderList() {
+    const r = currentRoutine;
+    document.getElementById('list-title').textContent = r.icon + ' ' + r.name;
+    document.getElementById('list-sub').textContent = r.sub;
+
+    const container = document.getElementById('ex-list');
+    container.innerHTML = '';
+
+    // Main exercises
+    r.exercises.forEach((ex, i) => {
+      const data = EXERCISES[ex.id];
+      const el = document.createElement('div');
+      el.className = 'ex-item';
+      el.onclick = () => jumpToExercise(i);
+      el.innerHTML = `
+        <div class="ex-num">${i + 1}</div>
+        <div class="ex-info">
+          <div class="ex-name">${data.name}</div>
+          <div class="ex-meta">${ex.sets} sets × ${ex.reps} &nbsp;·&nbsp; ${data.muscle.split(' · ')[0]}</div>
+        </div>
+        <span class="ex-chevron">›</span>
+      `;
+      container.appendChild(el);
+    });
+
+    // Optional add-ons teaser
+    const addonsSection = document.createElement('div');
+    addonsSection.className = 'list-addons-section';
+    addonsSection.innerHTML = `
+      <div class="list-addons-title">
+        <span>✦ Optional Add-ons</span>
+        <span class="badge">Pick 1–2</span>
+      </div>
+      <div class="list-addons-desc">
+        After your 6 main lifts, you'll choose 1–2 of these based on your weak points.
+      </div>
+      <div class="list-addons-chips">
+        <span class="list-addons-chip">Dead Bug</span>
+        <span class="list-addons-chip">Hip Abduction</span>
+        <span class="list-addons-chip">Calves</span>
+        <span class="list-addons-chip">Arm Superset</span>
+        <span class="list-addons-chip">Upper Chest Fly</span>
+        <span class="list-addons-chip">Upper Trap Shrugs</span>
+      </div>
+    `;
+    container.appendChild(addonsSection);
+  }
+
+  /* ══════════════════════════════════════════════════════════════
+     RENDER: OPTIONAL PICKER
+  ══════════════════════════════════════════════════════════════ */
+  function renderPicker() {
+    selectedOptIds.clear();
+    updatePickerFooter();
+
+    const body = document.getElementById('picker-body');
+    body.innerHTML = '';
+
+    ALL_OPTIONALS.forEach(opt => {
+      const data = EXERCISES[opt.id];
+      const isSS = !!data.isSuperset;
+      const card = document.createElement('div');
+      card.className = 'opt-card';
+      card.id = 'opt-card-' + opt.id;
+      card.onclick = () => toggleOptional(opt.id);
+      card.innerHTML = `
+        <div class="opt-check-ring">
+          <span class="opt-check-mark">✓</span>
+        </div>
+        <div class="opt-card-body">
+          <div class="opt-card-name">${data.name}${isSS ? ' <span style="font-size:12px;opacity:0.6">⚡ superset</span>' : ''}</div>
+          <div class="opt-card-muscle">${opt.weakPoint}</div>
+          <div class="opt-card-desc">${opt.why}</div>
+          <div class="opt-card-reps">${opt.sets} sets × ${opt.reps}</div>
+        </div>
+      `;
+      body.appendChild(card);
+    });
+
+    // Spacer so content isn't hidden behind sticky footer
+    const spacer = document.createElement('div');
+    spacer.style.height = '140px';
+    body.appendChild(spacer);
+  }
+
+  function toggleOptional(id) {
+    if (selectedOptIds.has(id)) {
+      selectedOptIds.delete(id);
+      document.getElementById('opt-card-' + id).classList.remove('selected');
+    } else {
+      if (selectedOptIds.size >= 2) return; // max 2
+      selectedOptIds.add(id);
+      document.getElementById('opt-card-' + id).classList.add('selected');
+    }
+    updatePickerFooter();
+  }
+
+  function updatePickerFooter() {
+    const count = selectedOptIds.size;
+    document.getElementById('sel-num').textContent = count;
+    document.getElementById('picker-add-btn').disabled = count === 0;
+
+    // Disable unselected cards if 2 are already chosen
+    ALL_OPTIONALS.forEach(opt => {
+      const card = document.getElementById('opt-card-' + opt.id);
+      if (!card) return;
+      if (count >= 2 && !selectedOptIds.has(opt.id)) {
+        card.classList.add('disabled');
+      } else {
+        card.classList.remove('disabled');
+      }
+    });
+  }
+
+  function addOptionals() {
+    const chosen = ALL_OPTIONALS.filter(o => selectedOptIds.has(o.id));
+    const optExercises = chosen.map(o => ({
+      id: o.id, sets: o.sets, reps: o.reps, optional: true
+    }));
+    sessionExList = [
+      ...currentRoutine.exercises.map(e => ({ ...e, optional: false })),
+      ...optExercises,
+    ];
+    currentIdx = currentRoutine.exercises.length; // jump to first optional
+    renderDetail();
+    showScreen('screen-detail');
+  }
+
+  function skipAddons() {
+    // Finish workout right away — no optionals
+    document.getElementById('complete-routine').textContent = currentRoutine.name;
+    document.getElementById('complete-overlay').classList.add('show');
+  }
+
+  /* ══════════════════════════════════════════════════════════════
+     RENDER: EXERCISE DETAIL
+  ══════════════════════════════════════════════════════════════ */
+  function renderDetail() {
+    const exRef = sessionExList[currentIdx];
+    const ex    = EXERCISES[exRef.id];
+    const total = sessionExList.length;
+    const num   = currentIdx + 1;
+    const mainCount = currentRoutine.exercises.length;
+
+    // Progress
+    document.getElementById('prog-text').textContent = `${num} / ${total}`;
+    document.getElementById('prog-bar').style.width = `${(num / total) * 100}%`;
+
+    // Prev button
+    document.getElementById('btn-prev').disabled = currentIdx === 0;
+
+    // Next button label + style
+    const nextBtn = document.getElementById('btn-next');
+    const isLastMain     = currentIdx === mainCount - 1 && sessionExList.length === mainCount;
+    const isLastOverall  = currentIdx === total - 1;
+
+    if (isLastMain) {
+      nextBtn.textContent = '✦ Choose Add-ons';
+      nextBtn.className   = 'nav-btn addons';
+    } else if (isLastOverall) {
+      nextBtn.textContent = '🏆 Finish Workout';
+      nextBtn.className   = 'nav-btn finish';
+    } else {
+      nextBtn.textContent = 'Next →';
+      nextBtn.className   = 'nav-btn next';
+    }
+
+    // Tags
+    const isOpt = !!exRef.optional;
+    const isSS  = !!ex.isSuperset;
+    const tags  = [
+      `<span class="tag ${ex.tag}">${ex.tag.toUpperCase()}</span>`,
+      isOpt ? '<span class="tag optional">OPTIONAL</span>' : '',
+      isSS  ? '<span class="tag superset">⚡ SUPERSET</span>' : '',
+    ].join('');
+
+    // GIF block
+    const gifHtml = isSS
+      ? `<div class="ss-toggle">
+           <button class="ss-btn on" id="ss0" onclick="switchSS(0)">${ex.gifLabel}</button>
+           <button class="ss-btn"    id="ss1" onclick="switchSS(1)">${ex.gif2Label}</button>
+         </div>
+         ${gifBlock(ex.gif, ex.name, ex.gifNote)}`
+      : gifBlock(ex.gif, ex.name, ex.gifNote);
+
+    const noteBar = ex.gifNote
+      ? `<div class="gif-warn">📌 ${ex.gifNote}</div>` : '';
+
+    // Sets/Reps bar
+    const srHtml = `
+      <div class="sr-bar">
+        <div class="sr-cell"><span class="sr-lab">Sets</span><span class="sr-val">${exRef.sets}</span></div>
+        <div class="sr-cell"><span class="sr-lab">Reps</span><span class="sr-val">${exRef.reps}</span></div>
+        <div class="sr-cell"><span class="sr-lab">Muscle</span><span class="sr-val muted">${ex.muscle.split(' · ')[0]}</span></div>
+      </div>`;
+
+    // Set tracker
+    const circles = Array.from({ length: exRef.sets }, (_, i) => `
+      <div class="set-circle" id="sc-${i}" onclick="toggleSet(${i})">
+        <span class="sc-lab">Set</span>
+        <span class="sc-num">${i + 1}</span>
+        <span class="sc-check">✓</span>
+      </div>`).join('');
+
+    // Cues
+    const cueItems = ex.cues.map(c =>
+      `<div class="cue"><div class="cue-dot"></div><div>${c}</div></div>`
+    ).join('');
+
+    document.getElementById('detail-body').innerHTML = `
+      <div class="tag-row">${tags}</div>
+      <h1 class="ex-title">${ex.name}</h1>
+      ${srHtml}
+      ${gifHtml}
+      ${noteBar}
+      ${YT[exRef.id] ? `<a class="yt-link" href="${YT[exRef.id].url}" target="_blank" rel="noopener"><span class="yt-icon">▶</span> Watch on YouTube <span class="yt-ts">${YT[exRef.id].ts}</span></a>` : ''}
+      <div class="tracker-section">
+        <div class="tracker-label">Track Your Sets</div>
+        <div class="tracker-row">${circles}</div>
+      </div>
+      <div class="cues-card open" id="cues-card">
+        <div class="cues-head" onclick="toggleCues()">
+          <span>📋 Form Cues &amp; Tips</span>
+          <span class="cues-arrow">⌄</span>
+        </div>
+        <div class="cues-body">
+          <div class="cues-inner">${cueItems}</div>
+        </div>
+      </div>
+    `;
+
+    if (isSS) window._ssEx = ex;
+  }
+
+  function gifBlock(src, alt, note) {
+    return `
+      <div class="gif-wrap">
+        <img class="gif-img" id="detail-gif" src="${src}" alt="${alt}"
+          style="display:none" onload="onGifLoad(this)" onerror="onGifError(this)">
+        <div class="gif-spinner" id="gif-spinner">
+          <div class="spinner-ring"></div>
+          <span>Loading GIF…</span>
+        </div>
+        <div class="gif-fallback" id="gif-fallback">
+          <div class="icon">🎬</div>
+          <div>GIF could not load</div>
+          ${note
+            ? `<div class="gif-note-bar">📌 ${note}</div>`
+            : `<div class="gif-note-bar">📌 Remind me to find a GIF for this exercise</div>`}
+        </div>
+      </div>`;
+  }
+
+  function onGifLoad(img) {
+    img.style.display = 'block';
+    img.parentElement.querySelector('.gif-spinner').style.display = 'none';
+  }
+
+  function onGifError(img) {
+    img.style.display = 'none';
+    img.parentElement.querySelector('.gif-spinner').style.display = 'none';
+    img.parentElement.querySelector('.gif-fallback').style.display = 'flex';
+  }
+
+  function switchSS(part) {
+    const ex  = window._ssEx;
+    const src = part === 0 ? ex.gif : ex.gif2;
+    const img     = document.getElementById('detail-gif');
+    const spinner = document.getElementById('gif-spinner');
+    const fallback = document.getElementById('gif-fallback');
+    img.style.display = 'none';
+    spinner.style.display = 'flex';
+    fallback.style.display = 'none';
+    img.src = src;
+    document.getElementById('ss0').classList.toggle('on', part === 0);
+    document.getElementById('ss1').classList.toggle('on', part === 1);
+  }
+
+  function toggleSet(i) {
+    document.getElementById(`sc-${i}`).classList.toggle('done');
+  }
+
+  function toggleCues() {
+    document.getElementById('cues-card').classList.toggle('open');
+  }
+</script>
+</body>
+</html>
