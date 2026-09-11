@@ -1,0 +1,1 @@
+Personal app so I can follow this YouTuber's gym routine w/out having to replay the video a bunch. It's only really public so I can host it, but the world is your oyster; if you wanna use it as well, go for it.
